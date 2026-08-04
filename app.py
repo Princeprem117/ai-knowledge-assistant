@@ -1,4 +1,4 @@
-from chatbot import ChatBot
+from chat.chatbot import ChatBot
 from storage import load_history , save_history
 
 # Load the conversation history from the JSON file
