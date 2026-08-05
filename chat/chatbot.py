@@ -45,3 +45,11 @@ class ChatBot:
         # saves history and adds the assistant's reply to the conversation history
         self.add_assistant_message(reply)
         return reply
+
+
+# clears the conversation history and resets it to the initial system prompt
+    def clear_history(self):
+        self.conversation_history = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    def new_chat(self):
+        self.clear_history()
