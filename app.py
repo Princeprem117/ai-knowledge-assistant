@@ -1,12 +1,16 @@
 from chat.chatbot import ChatBot
-from storage import load_history , save_history
+from storage import load_history, save_history
 from chat.commands import CommandHandler
+from llms.groq_client import GroqClient
 
 # Load the conversation history from the JSON file
 history = load_history()
 
+# Initialize the Groq client
+llm = GroqClient()
+
 # Initialize the chatbot
-chatbot = ChatBot(history)
+chatbot = ChatBot(history,llm)
 # Initialize the command handler
 command_handler = CommandHandler(chatbot)
 
