@@ -1,34 +1,41 @@
+
 # 🤖 AI Knowledge Assistant
 
-A terminal-based AI chatbot built with **Python** and the **Groq API**. This project marks the beginning of my journey into AI application development, with a focus on building practical, real-world AI systems from scratch.
+> A modular AI chatbot built with Python and the Groq API. This project is being developed step by step to learn modern AI engineering practices and build a production-ready AI knowledge assistant.
 
 ---
 
 ## 📖 Overview
 
-The AI Knowledge Assistant is a command-line chatbot that interacts with a Large Language Model (LLM) using the Groq API. It maintains conversation history, securely manages API keys, and demonstrates the core concepts of integrating AI models into Python applications.
+AI Knowledge Assistant is a Python-based AI chatbot that interacts with a Large Language Model (LLM) through the Groq API. The project focuses on clean architecture, modular design, and maintainability while gradually evolving into a complete AI-powered knowledge assistant.
+
+The current version provides a terminal-based chatbot with persistent conversation history and a scalable project structure that supports future enhancements.
 
 ---
 
-## ✨ Features
+## ✨ Current Features
 
 * 💬 Interactive terminal-based AI chatbot
-* 🚀 Fast AI responses powered by the Groq API
-* 🔐 Secure API key management using `.env`
+* 🚀 Fast responses using the Groq API
+* 🔐 Secure API key management with `.env`
 * 📝 Persistent conversation history stored in JSON
-* 📂 Automatic creation of the chat history directory
-* ⚙️ Clean and beginner-friendly project structure
+* 📂 Automatic creation and management of chat history
+* 🏗️ Modular project architecture
+* 🧩 Base Loader architecture for scalable loader management
+* 📦 Organized codebase for easier maintenance and future expansion
+* ⚙️ Clean separation of responsibilities between project modules
 
 ---
 
 ## 🛠️ Tech Stack
 
-* Python
-* Groq API
-* python-dotenv
-* JSON
-* Git
-* GitHub
+| Category        | Technology    |
+| --------------- | ------------- |
+| Language        | Python        |
+| AI Model        | Groq API      |
+| Configuration   | python-dotenv |
+| Data Storage    | JSON          |
+| Version Control | Git & GitHub  |
 
 ---
 
@@ -37,14 +44,23 @@ The AI Knowledge Assistant is a command-line chatbot that interacts with a Large
 ```text
 AI-Knowledge-Assistant/
 │
-├── First_Chatbot.py
-├── Requirements.txt
+├── app.py
+├── requirements.txt
 ├── README.md
 ├── .gitignore
 ├── .env
 │
-└── chat_history/
-    └── conversation_history.json
+├── chat_history/
+│
+├── loaders/
+│   ├── base_loader.py
+│   └── ...
+│
+├── utils/
+│
+├── config/
+│
+└── ...
 ```
 
 ---
@@ -54,7 +70,7 @@ AI-Knowledge-Assistant/
 ### Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/AI-Knowledge-Assistant.git
+git clone https://github.com/<your-github-username>/AI-Knowledge-Assistant.git
 ```
 
 ### Navigate to the project
@@ -86,10 +102,10 @@ source .venv/bin/activate
 ### Install dependencies
 
 ```bash
-pip install -r Requirements.txt
+pip install -r requirements.txt
 ```
 
-### Configure your API key
+### Configure the API Key
 
 Create a `.env` file in the project root and add:
 
@@ -97,46 +113,27 @@ Create a `.env` file in the project root and add:
 GROQ_API_KEY=your_groq_api_key
 ```
 
-### Run the chatbot
+### Run the Application
 
 ```bash
-python First_Chatbot.py
+python app.py
 ```
-
----
-
-## 📂 Conversation History
-
-All conversations are saved locally in JSON format inside the `chat_history` folder, allowing previous interactions to be preserved between sessions.
 
 ---
 
 ## 📚 What I Learned
 
-Through this project, I gained hands-on experience with:
+This project helped me gain practical experience in:
 
-* Integrating an LLM using the Groq Python SDK
-* Managing API keys securely with `python-dotenv`
-* Reading and writing JSON files
-* Maintaining conversation history
-* Structuring a Python project
+* Integrating Large Language Models using the Groq API
+* Secure configuration management with environment variables
+* Reading and writing JSON data
+* Maintaining persistent chat history
+* Designing modular Python applications
+* Refactoring code for better maintainability
+* Implementing a Base Loader architecture
+* Organizing scalable project structures
 * Using Git and GitHub for version control
-
----
-
-## 🚀 Current Status
-
-✅ Terminal AI Chatbot
-
-✅ Groq API Integration
-
-✅ Environment Variable Management
-
-✅ Conversation History
-
-✅ JSON Storage
-
-✅ GitHub Repository
 
 ---
 
@@ -171,15 +168,26 @@ The following features are planned for future versions of the AI Knowledge Assis
 ###  Deployment
 - Docker support
 - Cloud deployment
+
 ---
+
 ## 📜 License
 
 This project is licensed under the MIT License.
 
 ---
 
-# 👨‍💻 Author
+# 👨‍💻 About the Author
 
-**Prince Prem**
+**Prince**
 
+Aspiring AI Engineer passionate about building real-world AI applications and mastering modern AI technologies through hands-on projects.
 
+### Connect with Me
+
+* GitHub: https://github.com/<your-github-username>
+* LinkedIn: https://linkedin.com/in/<your-linkedin-username>
+
+---
+
+⭐ If you found this project useful or interesting, consider giving it a star on GitHub!
