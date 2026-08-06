@@ -179,15 +179,8 @@ This project is licensed under the MIT License.
 
 # 👨‍💻 About the Author
 
-**Prince**
+**PRINCE PREM **
 
 Aspiring AI Engineer passionate about building real-world AI applications and mastering modern AI technologies through hands-on projects.
 
-### Connect with Me
-
-* GitHub: https://github.com/<your-github-username>
-* LinkedIn: https://linkedin.com/in/<your-linkedin-username>
-
 ---
-
-⭐ If you found this project useful or interesting, consider giving it a star on GitHub!
