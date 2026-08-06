@@ -179,7 +179,7 @@ This project is licensed under the MIT License.
 
 # 👨‍💻 About the Author
 
-**PRINCE PREM **
+**PRINCE PREM**
 
 Aspiring AI Engineer passionate about building real-world AI applications and mastering modern AI technologies through hands-on projects.
 
