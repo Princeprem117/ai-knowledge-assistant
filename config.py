@@ -16,4 +16,6 @@ TEMPERATURE=0.7
 #storage
 HISTORY_FILE ='data/history.json'
 #app
-APP_NAME = "Eye Care AI"
+APP_NAME = "AI Knowledge Assistant"
+#embedding model
+EMBEDDING_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
