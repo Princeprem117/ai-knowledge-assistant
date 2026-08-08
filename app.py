@@ -34,3 +34,11 @@ while True:
     print(f"{'_'*50}")
     
     save_history(chatbot.get_messages())
+
+from loaders.text_loader import TextLoader
+
+loader = TextLoader()
+
+doc = loader.load("data/sample.txt")
+
+print(doc)
