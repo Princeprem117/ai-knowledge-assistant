@@ -10,14 +10,14 @@ class GroqClient(BaseLLM):
         self.temperature = TEMPERATURE
 
     def generate(self, messages: list[dict]) -> str:
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                max_tokens=self.max_tokens,
-                temperature=self.temperature
-            )
-            return response.choices[0].message.content
-        except Exception as e:
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            max_tokens=self.max_tokens,
+            temperature=self.temperature
+        )
+        return response.choices[0].message.content
+'''        except Exception as e:
             print(f"Error generating response: {e}")
             return "Sorry, I encountered an error while processing your request."
+            '''

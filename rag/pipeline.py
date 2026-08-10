@@ -6,7 +6,7 @@ from retrieval.retriever import Retriever
 class RAGPipeline:
     """
     Coordinates retrieval, context construction,
-    and LLM generation.
+    and language model generation.
     """
 
     def __init__(
@@ -24,10 +24,8 @@ class RAGPipeline:
         question: str,
         top_k: int = 5,
     ) -> str:
-        """
-        Answer a question using retrieved knowledge.
-        """
 
+        # Retrieve relevant documents
         results = self.retriever.retrieve(
             query=question,
             top_k=top_k,
@@ -35,20 +33,32 @@ class RAGPipeline:
 
         documents = results["documents"][0]
 
+        # Build context from retrieved documents
         context = self.context_builder.build(
             documents
         )
 
-        prompt = f"""
-Use the following context to answer the question.
+        # Create messages for the LLM
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are an AI Knowledge Assistant. "
+                    "Answer the user's question using the provided context. "
+                    "If the answer cannot be found in the context, "
+                    "say that you don't have enough information."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Context:\n"
+                    f"{context}\n\n"
+                    f"Question:\n"
+                    f"{question}"
+                ),
+            },
+        ]
 
-Context:
-{context}
-
-Question:
-{question}
-
-Answer:
-""".strip()
-
-        return self.llm.generate(prompt)
+        # Generate answer
+        return self.llm.generate(messages)
