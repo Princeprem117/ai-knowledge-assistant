@@ -1,18 +1,18 @@
 # 🤖 AI Knowledge Assistant
 
-> A modular AI-powered knowledge assistant built with Python, evolving step by step from a basic AI chatbot toward a complete Retrieval-Augmented Generation (RAG) and agentic AI system.
+> A modular AI-powered knowledge assistant built from scratch with Python, evolving from a basic LLM chatbot into a Retrieval-Augmented Generation (RAG) application.
 
 ---
 
 ## 📖 Overview
 
-**AI Knowledge Assistant** is a Python-based project focused on learning and building modern AI applications from the ground up.
+**AI Knowledge Assistant** is a Python-based AI application designed to answer questions using information from a custom knowledge base.
 
-The project started as a terminal-based AI chatbot and is gradually evolving into a knowledge-based AI assistant.
+The project started as a simple terminal-based chatbot and has progressively evolved into a **basic end-to-end RAG application**.
 
-The current implementation focuses on building the **document processing and embedding pipeline**, including document loaders, a common document model, recursive text chunking, and local vector embeddings.
+The current system can process knowledge documents, split them into chunks, generate vector embeddings, store them in a vector database, retrieve relevant information, and use the retrieved context to generate responses with an LLM.
 
-The project is intentionally being developed incrementally to understand the underlying concepts and architecture rather than relying entirely on high-level frameworks.
+The project is being developed incrementally to understand the underlying concepts and architecture behind modern AI applications.
 
 ---
 
@@ -20,46 +20,170 @@ The project is intentionally being developed incrementally to understand the und
 
 ### 🤖 AI Chatbot
 
-* Interactive terminal-based AI chatbot
+* Interactive terminal-based chatbot
 * Groq API integration
+* Configurable LLM parameters
 * Secure API key management using environment variables
 * Conversation history
-* JSON-based local chat storage
+* JSON-based conversation storage
+* Chat commands and conversation management
 
 ### 📄 Document Processing
 
 * Modular document loader architecture
-* Base loader interface
-* Document loading
+* Base loader abstraction
+* Text document loading
 * Common `Document` data model
-* Recursive text chunking using `RecursiveChunker`
+* Metadata support
+* Recursive text chunking
+* Configurable chunk size and chunk overlap
 
 ### 🧠 Embeddings
 
 * Local Sentence Transformer embedding model
-* Converts document chunks into numerical vector representations
-* Local embedding generation without depending on an external embedding API
+* Converts document chunks into vector representations
+* Query embedding generation
+* Local embedding generation without requiring an external embedding API
 
-### 🏗️ Project Architecture
+### 🗄️ Vector Database
 
-* Modular Python project structure
-* Separation of responsibilities between components
-* Reusable base classes and interfaces
-* Component-level testing during development
-* Architecture designed to support future semantic search and RAG functionality
+* ChromaDB integration
+* Persistent vector storage
+* Document and embedding storage
+* Metadata storage
+* Similarity search
+* Document deletion
+* Vector-store abstraction for maintainability
+
+### 🔎 Retrieval
+
+* Query-to-vector conversion
+* Similarity-based document retrieval
+* Top-K relevant chunk retrieval
+* Retrieved context prepared for LLM generation
+
+### 🧠 RAG
+
+* Basic end-to-end Retrieval-Augmented Generation pipeline
+* Knowledge-base initialization
+* Document processing and indexing
+* Query embedding
+* Relevant context retrieval
+* Context-aware LLM generation
+
+---
+
+## 🔄 RAG Pipeline
+
+The current application follows this general flow:
+
+```text
+                    KNOWLEDGE INGESTION
+                           │
+                           ▼
+                      Documents
+                           │
+                           ▼
+                    Document Loader
+                           │
+                           ▼
+                    Document Model
+                           │
+                           ▼
+                   Recursive Chunker
+                           │
+                           ▼
+                Sentence Transformer
+                           │
+                           ▼
+                    Vector Embeddings
+                           │
+                           ▼
+                       ChromaDB
+                           │
+                           │
+                           ▼
+                    VECTOR DATABASE
+                           │
+                           │
+                    USER QUESTION
+                           │
+                           ▼
+                Query Embedding
+                           │
+                           ▼
+                    ChromaDB Search
+                           │
+                           ▼
+                 Relevant Documents
+                           │
+                           ▼
+                  Retrieved Context
+                           │
+                           ▼
+                       Groq LLM
+                           │
+                           ▼
+                    Final Response
+```
+
+This represents the basic RAG architecture currently implemented in the project.
+
+---
+
+## 🏗️ Architecture
+
+The project follows a modular architecture instead of putting the complete application logic into a single file.
+
+```text
+AI Knowledge Assistant
+│
+├── Chat Layer
+│   ├── ChatBot
+│   ├── Commands
+│   └── Prompts
+│
+├── LLM Layer
+│   └── Groq Client
+│
+├── Document Layer
+│   ├── Document Model
+│   └── Loaders
+│
+├── Chunking Layer
+│   ├── Base Chunker
+│   └── Recursive Chunker
+│
+├── Embedding Layer
+│   └── Sentence Transformer
+│
+├── Vector Database Layer
+│   ├── Base Vector Store
+│   └── ChromaDB
+│
+├── Knowledge Base
+│   └── RAG Pipeline
+│
+├── Storage
+│   └── Conversation History
+│
+└── Tests
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Category             | Technology            |
-| -------------------- | --------------------- |
-| Programming Language | Python                |
-| LLM API              | Groq                  |
-| Embeddings           | Sentence Transformers |
-| Configuration        | python-dotenv         |
-| Data Storage         | JSON                  |
-| Version Control      | Git & GitHub          |
+| Category        | Technology            |
+| --------------- | --------------------- |
+| Language        | Python                |
+| LLM             | Groq                  |
+| Embeddings      | Sentence Transformers |
+| Vector Database | ChromaDB              |
+| Configuration   | python-dotenv         |
+| Data Storage    | JSON                  |
+| Testing         | Python testing tools  |
+| Version Control | Git & GitHub          |
 
 ---
 
@@ -68,18 +192,34 @@ The project is intentionally being developed incrementally to understand the und
 ```text
 AI-Knowledge-Assistant/
 │
+├── app/
+│   └── ...
+│
+├── chat/
+│   ├── chatbot.py
+│   ├── commands.py
+│   └── prompts.py
+│
+├── llms/
+│   └── groq_client.py
+│
 ├── loaders/
 │   ├── base_loader.py
-│   └── ...
+│   └── text_loader.py
 │
 ├── models/
 │   └── document.py
 │
-├── chunking/
+├── chunkers/
+│   ├── base_chunker.py
 │   └── recursive_chunker.py
 │
 ├── embeddings/
 │   └── ...
+│
+├── vectordb/
+│   ├── base_vector_store.py
+│   └── chroma_db.py
 │
 ├── tests/
 │   └── ...
@@ -87,59 +227,14 @@ AI-Knowledge-Assistant/
 ├── data/
 │   └── ...
 │
+├── config.py
 ├── requirements.txt
 ├── .env
 ├── .gitignore
 └── README.md
 ```
 
-> The project structure is evolving as new components are implemented.
-
----
-
-## 🔄 Current Processing Pipeline
-
-The current document-processing pipeline works through the following stages:
-
-```text
-Documents
-    │
-    ▼
-Document Loaders
-    │
-    ▼
-Document Model
-    │
-    ▼
-Recursive Chunker
-    │
-    ▼
-Sentence Transformer
-    │
-    ▼
-Vector Embeddings
-```
-
-The next stage is to store and retrieve these embeddings using a **Vector Database**.
-
----
-
-## 🚧 Current Development
-
-### 🗄️ Vector Database — In Progress
-
-The project is currently implementing the **Vector Database layer**.
-
-The planned implementation uses **ChromaDB** for:
-
-* Storing document embeddings
-* Storing document metadata
-* Performing similarity search
-* Retrieving relevant document chunks
-
-The Vector Database layer is **not yet fully implemented** and therefore is not listed as a completed feature.
-
-Current development includes designing a reusable vector-store abstraction that can later support ChromaDB.
+> The structure may continue to evolve as new capabilities are added.
 
 ---
 
@@ -191,24 +286,28 @@ Create a `.env` file in the project root:
 GROQ_API_KEY=your_groq_api_key
 ```
 
-### 7. Run the project
+### 7. Run the application
 
-Run the appropriate application or test module according to the current project structure.
+```bash
+python -m app.app
+```
 
 ---
 
 ## 🧪 Testing
 
-The project includes tests for validating individual components during development.
+The project contains component-level tests for validating individual parts of the system.
 
-Current testing focuses on components such as:
+Current tests cover areas including:
 
-* Document loaders
-* Document model
-* Text chunking
-* Embedding generation
+* Document processing
+* Chunking
+* Embeddings
+* ChromaDB vector storage
+* Vector similarity search
+* Vector deletion
 
-Example:
+For example:
 
 ```bash
 python -m tests.test_embedding
@@ -218,59 +317,62 @@ python -m tests.test_embedding
 
 ## 📚 What I Have Learned
 
-Through this project, I have gained practical experience with:
+Through this project, I have gained hands-on experience with:
 
-* Integrating LLMs using APIs
-* Managing API keys securely
-* Using environment variables
-* Reading and writing JSON data
-* Designing modular Python applications
-* Creating reusable loader interfaces
-* Designing a common document representation
-* Understanding document chunking
-* Implementing recursive text splitting
-* Generating local vector embeddings
-* Understanding how embeddings represent semantic information
-* Structuring components for future vector database integration
-* Testing individual components during development
-* Using Git and GitHub for version control
+* Integrating Large Language Models
+* Working with the Groq API
+* Secure environment configuration
+* Conversation management
+* JSON persistence
+* Modular Python architecture
+* Abstract base classes and interfaces
+* Document loading
+* Document metadata
+* Text chunking
+* Recursive chunking
+* Vector embeddings
+* Sentence Transformers
+* Vector databases
+* ChromaDB
+* Similarity search
+* Knowledge-base construction
+* Retrieval-Augmented Generation
+* Connecting retrieved context with an LLM
+* Component-level testing
+* Git and GitHub
 
 ---
 
 ## 🚀 Future Development
 
-The project will continue evolving toward a complete AI Knowledge Assistant.
+The current implementation is a **basic RAG application**. The project will continue to evolve toward a more capable AI Knowledge Assistant.
 
-### 🗄️ Vector Database
+### 📄 Knowledge Ingestion
 
-* [ ] Complete ChromaDB integration
-* [ ] Store document embeddings
-* [ ] Store document metadata
-* [ ] Implement similarity search
-* [ ] Implement metadata filtering
+* [ ] Support additional document formats
+* [ ] PDF loading
+* [ ] DOCX loading
+* [ ] Improved metadata handling
+* [ ] Better document preprocessing
 
-### 🔎 Semantic Search
+### 🔎 Advanced Retrieval
 
-* [ ] Retrieve relevant document chunks
-* [ ] Improve retrieval quality
-* [ ] Evaluate search results
+* [ ] Improved retrieval strategies
+* [ ] Metadata filtering
+* [ ] Hybrid search
+* [ ] Reranking
+* [ ] Retrieval evaluation
 
-### 🧠 Retrieval-Augmented Generation
+### 🧠 Advanced RAG
 
-* [ ] Build the complete RAG pipeline
-* [ ] Connect retrieval with the LLM
-* [ ] Generate answers from retrieved knowledge
-* [ ] Add source references and citations
-* [ ] Improve retrieval and generation quality
+* [ ] Improved prompt engineering
+* [ ] Source citations
+* [ ] Context compression
+* [ ] Query transformation
+* [ ] Conversational RAG
+* [ ] RAG evaluation
 
-### 💬 Assistant Features
-
-* [ ] Multiple conversation sessions
-* [ ] Persistent session management
-* [ ] Improved conversation memory
-* [ ] Context-aware responses
-
-### ⚡ Modern AI Technologies
+### ⚡ Modern AI Frameworks
 
 * [ ] LangChain integration where appropriate
 * [ ] LangGraph workflows
@@ -278,12 +380,18 @@ The project will continue evolving toward a complete AI Knowledge Assistant.
 * [ ] AI agents
 * [ ] Multi-agent workflows
 
-### 🌐 Application & Deployment
+### 💬 Application Improvements
+
+* [ ] Multiple chat sessions
+* [ ] Better conversation memory
+* [ ] User/session management
+* [ ] File upload interface
+
+### 🌐 Deployment
 
 * [ ] FastAPI backend
 * [ ] Web interface
-* [ ] File upload functionality
-* [ ] Docker support
+* [ ] Docker
 * [ ] Cloud deployment
 * [ ] CI/CD
 * [ ] Monitoring and logging
@@ -301,17 +409,23 @@ AI Knowledge Assistant
 ├── ✅ Conversation History
 ├── ✅ JSON Storage
 │
-├── ✅ Modular Loader Architecture
+├── ✅ Modular Architecture
+├── ✅ Base Loader
 ├── ✅ Document Model
-├── ✅ Document Loaders
+├── ✅ Text Loader
 ├── ✅ Recursive Chunking
 ├── ✅ Sentence Transformer Embeddings
 │
-├── 🔄 Vector Database / ChromaDB
+├── ✅ ChromaDB Vector Store
+├── ✅ Vector Similarity Search
+├── ✅ Vector Store Tests
 │
-├── ⏳ Semantic Search
-├── ⏳ RAG Pipeline
+├── ✅ Basic End-to-End RAG
+│
+├── ⏳ Advanced Retrieval
+├── ⏳ RAG Evaluation
 ├── ⏳ Source Citations
+├── ⏳ Conversational RAG
 ├── ⏳ LangChain
 ├── ⏳ LangGraph
 ├── ⏳ AI Agents
