@@ -12,6 +12,6 @@ class TextLoader(BaseLoader):
                 content=text,
                 metadata={
                     "source": file_path,
-                    "type": "text"
-                }
+                    "type": "text",
+                },
             )
