@@ -1,5 +1,5 @@
 from config import GROQ_API_KEY, MODEL_NAME, MAX_TOKENS, TEMPERATURE
-from groq import Groq
+from groq import Groq , RateLimitError
 from llms.base_llm import BaseLLM
 
 class GroqClient(BaseLLM):
@@ -10,14 +10,28 @@ class GroqClient(BaseLLM):
         self.temperature = TEMPERATURE
 
     def generate(self, messages: list[dict]) -> str:
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            max_tokens=self.max_tokens,
-            temperature=self.temperature
-        )
-        return response.choices[0].message.content
-'''        except Exception as e:
+
+        try:
+
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
+            )
+
+            return response.choices[0].message.content
+
+        except RateLimitError:
+            return (
+            "The language model API rate limit has been reached. "
+            "\nPlease try again later."
+            )
+
+        except Exception as e:
             print(f"Error generating response: {e}")
-            return "Sorry, I encountered an error while processing your request."
-            '''
+
+            return (
+            "Sorry, I encountered an error while "
+            "processing your request."
+            )

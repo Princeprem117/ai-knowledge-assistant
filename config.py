@@ -15,6 +15,7 @@ TEMPERATURE=0.7
 
 #storage
 HISTORY_FILE ='data/history.json'
+CHROMA_PERSIST_DIRECTORY = "data/chroma"
 #app
 APP_NAME = "AI Knowledge Assistant"
 #embedding model
