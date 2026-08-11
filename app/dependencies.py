@@ -11,6 +11,9 @@ from knowledge.base_knowledge import BaseKnowledge
 from llms.groq_client import GroqClient
 
 from retrieval.retriever import Retriever
+from retrieval.context_builder import ContextBuilder
+
+from rag.pipeline import RAGPipeline
 
 from vectordb.chroma_db import ChromaVectorStore
 
@@ -56,10 +59,20 @@ def create_knowledge_base():
         vector_store=vector_store,
     )
 
+    # Context builder
+    context_builder = ContextBuilder()
+    
+    # RAG pipeline
+    rag_pipeline = RAGPipeline(
+        retriever=retriever,
+        context_builder= context_builder,
+        llm=llm,
+)
+
     # Knowledge base
     knowledge = BaseKnowledge(
         ingestion_service=ingestion_service,
         retriever=retriever,
     )
 
-    return knowledge, retriever, llm
+    return knowledge, rag_pipeline, llm

@@ -4,8 +4,7 @@ from chat.chatbot import ChatBot
 from chat.commands import CommandHandler
 from storage import load_history, save_history
 
-from retrieval.context_builder import ContextBuilder
-from rag.pipeline import RAGPipeline
+
 
 
 # Load conversation history
@@ -13,21 +12,9 @@ history = load_history()
 
 
 # Initialize shared application dependencies
-knowledge, retriever, llm = create_knowledge_base()
+knowledge, rag_pipeline, llm = create_knowledge_base()
 
 print("Knowledge Base initialized successfully.")
-
-
-# Context builder
-context_builder = ContextBuilder()
-
-
-# RAG pipeline
-rag_pipeline = RAGPipeline(
-    retriever=retriever,
-    context_builder=context_builder,
-    llm=llm,
-)
 
 
 # Chatbot
@@ -45,14 +32,14 @@ command_handler = CommandHandler(
 )
 
 
-# Chat loop
+# Main Chat loop
 while True:
 
     user_input = input("You: ").strip()
-
+    # Exit application
     if user_input.lower() in ["exit", "bye"]:
         break
-
+        # Hnadling commands
     if command_handler.is_command(user_input):
 
         response = command_handler.handle_command(
@@ -67,7 +54,7 @@ while True:
         )
 
         continue
-
+        # Normal chat
     reply = chatbot.chat(user_input)
 
     print(f"\nAI: {reply}")

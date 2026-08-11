@@ -55,3 +55,24 @@ class ChromaVectorStore(BaseVectorStore):
         self.collection.delete(
             ids=ids
         )
+
+    def list_documents(self) -> list[dict]:
+        """Return metadata for all stored documents."""
+
+        results = self.collection.get(
+            include=["metadatas"]
+        )
+
+        return results.get("metadatas", [])
+
+    def get_ids_by_source(self, source: str) -> list[str]:
+        """
+        Return all chunk IDs belonging to a source document.
+        """
+
+        results = self.collection.get(
+            where={"source": source},
+            include=["metadatas"],
+            )
+
+        return results.get("ids", [])

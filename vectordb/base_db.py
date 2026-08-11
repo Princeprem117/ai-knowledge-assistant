@@ -37,3 +37,17 @@ class BaseVectorStore(ABC):
         Delete documents from the vector store using their IDs.
         """
         pass
+        #getting the source ids
+    @abstractmethod
+    def get_ids_by_source(self, source: str) -> list[str]:
+        """
+        Return all chunk IDs belonging to a source document.
+        """
+        pass
+    # list docs
+    @abstractmethod
+    def list_documents(self) -> list[dict[str, Any]]:
+        """
+        Return the documents currently stored in the vector store.
+        """
+        pass

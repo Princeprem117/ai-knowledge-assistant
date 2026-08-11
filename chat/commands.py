@@ -31,25 +31,40 @@ class CommandHandler:
         if command.startswith("/ask"):
             return self.ask_knowledge(command)
 
+        if command == "/list":
+            return self.list_documents()
+        if command.startswith("/remove "):
+            return self.remove_document(command)
+
         return "Unknown command. Type /help for a list of available commands."
 
     # add document method
     def add_document(self, command):
+
         file_path = command[len("/add "):].strip()
 
         if not file_path:
-            return "Please provide a file path. Example: /add data/sample.txt"
+                return (
+                "Please provide a file path. "
+                "Example: /add data/sample.txt"
+                )
 
         try:
-            chunks = self.knowledge.ingest_file(file_path)
+            chunks = self.knowledge.ingest_file(
+                file_path
+                )
 
             return (
                 f"Document ingested successfully.\n"
                 f"Chunks stored: {chunks}"
-            )
+                )
+
+        except ValueError as e:
+            return str(e)
 
         except Exception as e:
             return f"Failed to ingest document: {e}"
+
 
     def ask_knowledge(self, command):
 
@@ -72,6 +87,8 @@ class CommandHandler:
         /clear      - Clear the conversation history
         /new        - Start a new conversation history
         /history    - Show conversation history
+        /list       - List documents in the knowledge base
+        /remove <file_path> -   Remove a document from the knowledge base
         """
 
     def show_history(self):
@@ -98,4 +115,54 @@ class CommandHandler:
     def new_chat(self):
         self.chatbot.new_chat()
         return "New conversation started."
-    
+
+    def list_documents(self):
+
+        documents = self.knowledge.list_documents()
+
+        if not documents:
+            return "No documents found in the knowledge base."
+
+        response = "Indexed documents:\n"
+
+        sources = []
+
+        for metadata in documents:
+            source = metadata.get("source")
+
+            if source and source not in sources:
+                sources.append(source)
+
+        for index, source in enumerate(sources, start=1):
+            response += f"[{index}] {source}\n"
+
+        return response.rstrip()
+
+    # user command to remove docs
+    def remove_document(self, command):
+
+        file_path = command[len("/remove "):].strip()
+
+        if not file_path:
+            return (
+            "Please provide a file path. "
+            "Example: /remove data/sample.pdf"
+            )
+
+        try:
+            chunks = self.knowledge.remove_document(
+            file_path
+            )
+
+            if chunks == 0:
+                return (
+                "Document not found in the knowledge base."
+                )
+
+            return (
+                f"Document removed successfully.\n"
+                f"Chunks removed: {chunks}"
+            )
+
+        except Exception as e:
+            return f"Failed to remove document: {e}"
