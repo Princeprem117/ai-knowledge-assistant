@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from loaders.docx_loader import DocxLoader
 from loaders.base_loader import BaseLoader
 from loaders.text_loader import TextLoader
 from loaders.pdf_loader import PdfLoader
@@ -24,6 +25,9 @@ class LoaderFactory:
 
         if extension in {".md", ".markdown"}:
             return MarkdownLoader()
+
+        if extension == ".docx":
+            return DocxLoader()
 
         raise ValueError(
             f"Unsupported file type: {extension}"

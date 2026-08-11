@@ -1,4 +1,4 @@
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 
 from loaders.base_loader import BaseLoader
 from models.document import Document
@@ -7,22 +7,20 @@ from models.document import Document
 class PdfLoader(BaseLoader):
 
     def load(self, file_path: str) -> Document:
-        """
-        Load text from a PDF file.
-        """
-
         reader = PdfReader(file_path)
 
-        text = ""
+        pages = []
 
         for page in reader.pages:
-            page_text = page.extract_text()
+            text = page.extract_text()
 
-            if page_text:
-                text += page_text + "\n"
+            if text:
+                pages.append(text)
+
+        content = "\n\n".join(pages)
 
         return Document(
-            content=text,
+            content=content,
             metadata={
                 "source": file_path,
                 "type": "pdf",
