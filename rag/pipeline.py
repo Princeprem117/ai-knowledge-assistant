@@ -6,7 +6,7 @@ from retrieval.retriever import Retriever
 class RAGPipeline:
     """
     Coordinates retrieval, context construction,
-    and language model generation.
+    language model generation, and source citations.
     """
 
     def __init__(
@@ -25,26 +25,28 @@ class RAGPipeline:
         top_k: int = 5,
     ) -> str:
 
-        # Retrieve relevant documents
+        # 1. Retrieve relevant documents
         results = self.retriever.retrieve(
             query=question,
             top_k=top_k,
         )
 
         documents = results["documents"][0]
+        metadatas = results["metadatas"][0]
 
-        # Build context from retrieved documents
+        # 2. Build context from retrieved documents
         context = self.context_builder.build(
             documents
         )
 
-        # Create messages for the LLM
+        # 3. Create messages for the LLM
         messages = [
             {
                 "role": "system",
                 "content": (
                     "You are an AI Knowledge Assistant. "
-                    "Answer the user's question using the provided context. "
+                    "Answer the user's question using only the "
+                    "provided context. "
                     "If the answer cannot be found in the context, "
                     "say that you don't have enough information."
                 ),
@@ -60,5 +62,25 @@ class RAGPipeline:
             },
         ]
 
-        # Generate answer
-        return self.llm.generate(messages)
+        # 4. Generate answer
+        answer = self.llm.generate(messages)
+
+        # 5. Build source citations from metadata
+        sources = []
+
+        for metadata in metadatas:
+            source = metadata.get("source")
+
+            if source and source not in sources:
+                sources.append(source)
+
+        # 6. Add citations to the answer
+        if sources:
+            answer += "\n\nSources:\n"
+
+            for index, source in enumerate(sources, start=1):
+
+                answer += f"[{index}] {source}\n"
+
+
+        return answer
