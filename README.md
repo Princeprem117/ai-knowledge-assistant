@@ -101,7 +101,6 @@ The chat workspace allows users to ask questions about their uploaded knowledge 
 
 <img src="img/chat.png"/>
 
-
 ### 📄 Documents
 
 The Documents section allows users to upload supported files and manage the documents currently used by the knowledge base.
