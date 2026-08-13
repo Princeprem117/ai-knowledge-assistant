@@ -1,10 +1,14 @@
+from typing import Any
+
 import chromadb
 
 from vectordb.base_db import BaseVectorStore
 
 
 class ChromaVectorStore(BaseVectorStore):
-    """ChromaDB implementation of the vector store."""
+    """
+    ChromaDB implementation of the vector store.
+    """
 
     def __init__(
         self,
@@ -19,28 +23,44 @@ class ChromaVectorStore(BaseVectorStore):
             name=collection_name
         )
 
+    # ============================================================
+    # Add / update documents
+    # ============================================================
+
     def add(
         self,
         documents: list[str],
         embeddings: list[list[float]],
-        metadatas: list[dict],
+        metadatas: list[dict[str, Any]],
         ids: list[str],
     ) -> None:
-        """Add documents and their embeddings to ChromaDB."""
+        """
+        Add or update documents in ChromaDB.
 
-        self.collection.add(
+        Upsert is used because chunk IDs are deterministic.
+        This prevents problems when the same document is
+        ingested again.
+        """
+
+        self.collection.upsert(
             ids=ids,
             documents=documents,
             embeddings=embeddings,
             metadatas=metadatas,
         )
 
+    # ============================================================
+    # Search
+    # ============================================================
+
     def search(
         self,
         query_embedding: list[float],
         top_k: int = 5,
-    ) -> dict:
-        """Search for documents similar to the query embedding."""
+    ) -> dict[str, Any]:
+        """
+        Search for documents similar to the query embedding.
+        """
 
         results = self.collection.query(
             query_embeddings=[query_embedding],
@@ -49,30 +69,69 @@ class ChromaVectorStore(BaseVectorStore):
 
         return results
 
-    def delete(self, ids: list[str]) -> None:
-        """Delete documents from ChromaDB using their IDs."""
+    # ============================================================
+    # Delete
+    # ============================================================
+
+    def delete(
+        self,
+        ids: list[str],
+    ) -> None:
+        """
+        Delete documents from ChromaDB using their IDs.
+        """
+
+        if not ids:
+            return
 
         self.collection.delete(
             ids=ids
         )
 
-    def list_documents(self) -> list[dict]:
-        """Return metadata for all stored documents."""
+    # ============================================================
+    # Get IDs by source
+    # ============================================================
 
-        results = self.collection.get(
-            include=["metadatas"]
-        )
-
-        return results.get("metadatas", [])
-
-    def get_ids_by_source(self, source: str) -> list[str]:
+    def get_ids_by_source(
+        self,
+        source: str,
+    ) -> list[str]:
         """
         Return all chunk IDs belonging to a source document.
         """
 
         results = self.collection.get(
-            where={"source": source},
-            include=["metadatas"],
-            )
+            where={
+                "source": source
+            },
+            include=[
+                "metadatas"
+            ],
+        )
 
-        return results.get("ids", [])
+        return results.get(
+            "ids",
+            []
+        )
+
+    # ============================================================
+    # List documents
+    # ============================================================
+
+    def list_documents(
+        self,
+    ) -> list[dict[str, Any]]:
+        """
+        Return metadata for all stored chunks.
+        """
+
+        results = self.collection.get(
+            include=[
+                "metadatas"
+            ],
+        )
+
+        return results.get(
+            "metadatas",
+            []
+        )
