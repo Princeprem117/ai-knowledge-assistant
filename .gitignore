@@ -4,3 +4,5 @@ data/history.json
 __pycache__/
 *.pyc
 tests/
+.pytest_cache/
+images/

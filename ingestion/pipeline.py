@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 from chunkers.base_chunker import BaseChunker
 from embeddings.base_embedding import BaseEmbedding
@@ -48,19 +49,34 @@ class IngestionPipeline:
             for chunk in all_chunks
         ]
 
-        metadatas = [
-            chunk.metadata
-            for chunk in all_chunks
-        ]
+        # Store only the original filename in metadata.
+        #
+        # Example:
+        # C:/Python/AI Knowledge Assistant/data/uploads/sample.pdf
+        #
+        # becomes:
+        # sample.pdf
 
-        # 4. Generate stable IDs
-                # 4. Generate stable IDs
-        ids = []
-        source_counters = {}
+        metadatas = []
 
         for chunk in all_chunks:
 
-            source = chunk.metadata.get(
+            metadata = dict(chunk.metadata)
+
+            source = metadata.get("source")
+
+            if source:
+                metadata["source"] = Path(source).name
+
+            metadatas.append(metadata)
+
+        # 4. Generate stable IDs
+        ids = []
+        source_counters = {}
+
+        for metadata in metadatas:
+
+            source = metadata.get(
                 "source",
                 "unknown"
             )
