@@ -28,7 +28,29 @@ class Retriever:
 
         query_embedding = self.embedding_model.embed(query)
 
-        return self.vector_store.search(
+        results = self.vector_store.search(
             query_embedding=query_embedding,
             top_k=top_k,
         )
+
+        # Temporary diagnostic output
+        print("\n--- Retrieval Debug ---")
+        print(f"Query: {query}")
+
+        distances = results.get("distances", [[]])[0]
+        documents = results.get("documents", [[]])[0]
+
+        for index, (distance, document) in enumerate(
+            zip(distances, documents),
+            start=1,
+        ):
+            preview = document[:100].replace("\n", " ")
+
+            print(
+                f"{index}. distance={distance:.4f} "
+                f"| document={preview}"
+            )
+
+        print("-----------------------\n")
+
+        return results
