@@ -93,25 +93,27 @@ The interface is designed to keep the main RAG workflow simple and easy to use.
 
 The home page introduces LearnBot and provides quick access to chatting, documents, and new conversations.
 
-![LearnBot Home](/images/home.png)
+<img src="img/home.png"/>
 
 ### 💬 Chat
 
 The chat workspace allows users to ask questions about their uploaded knowledge base and receive RAG-based answers.
 
-![LearnBot Chat](images/chat.png)
+<img src="img/chat.png"/>
+
 
 ### 📄 Documents
 
 The Documents section allows users to upload supported files and manage the documents currently used by the knowledge base.
 
-![LearnBot Documents](images/documents.png)
+<img src="img/documents.png"/>
+
 
 ### 🗂️ Chats
 
 The Chats section provides access to saved conversations, allowing users to open or delete previous chats.
 
-![LearnBot Chats](images/chats.png)
+<img src="img/chats.png"/>
 
 ---
 
