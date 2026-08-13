@@ -67,6 +67,7 @@ def create_knowledge_base():
         retriever=retriever,
         context_builder= context_builder,
         llm=llm,
+        relevance_threshold=1.5,
 )
 
     # Knowledge base
