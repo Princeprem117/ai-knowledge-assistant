@@ -1,5 +1,4 @@
 import re
-from pathlib import Path
 
 from chunkers.base_chunker import BaseChunker
 from embeddings.base_embedding import BaseEmbedding
@@ -44,20 +43,14 @@ class IngestionPipeline:
         ]
 
         # 3. Prepare data for vector store
-        contents = [
-            chunk.content
-            for chunk in all_chunks
-        ]
 
-        # Store only the original filename in metadata.
-        #
-        # Example:
-        # C:/Python/AI Knowledge Assistant/data/uploads/sample.pdf
-        #
-        # becomes:
-        # sample.pdf
+        contents = [
+                chunk.content
+                for chunk in all_chunks
+            ]
 
         metadatas = []
+        source_paths = []
 
         for chunk in all_chunks:
 
@@ -65,29 +58,27 @@ class IngestionPipeline:
 
             source = metadata.get("source")
 
-            if source:
-                metadata["source"] = Path(source).name
+            # Keep the original source for deterministic IDs.
+            source_paths.append(source)
 
-            metadatas.append(metadata)
+                # Keep the original source path in metadata.
+            if source:
+                metadata["source"] = str(source)
+
+                metadatas.append(metadata)
 
         # 4. Generate stable IDs
+
         ids = []
         source_counters = {}
 
-        for metadata in metadatas:
-
-            source = metadata.get(
-                "source",
-                "unknown"
-            )
-
+        for source in source_paths:
             source_id = re.sub(
                 r"[^a-zA-Z0-9]+",
                 "_",
-                source
+                str(source)
             ).strip("_").lower()
 
-            # Keep a separate counter for each source
             counter = source_counters.get(
                 source_id,
                 0
