@@ -4,7 +4,7 @@ from models.document import Document
 
 class BaseChunker(ABC):
 
-    def __init__(self, chunk_size: int = 500, chunk_overlap: int = 50):
+    def __init__(self, chunk_size: int = 500, chunk_overlap: int = 60):
         if chunk_size <= 0:
             raise ValueError("chunk_size must be greater than 0")
 
