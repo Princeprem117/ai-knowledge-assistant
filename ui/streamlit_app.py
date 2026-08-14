@@ -1759,18 +1759,37 @@ elif st.session_state.page == "documents":
 
                         try:
 
+                            # ------------------------------------------------
+                            # 1. Remove document chunks from vector database
+                            # ------------------------------------------------
+
+                            removed_chunks = knowledge.remove_document(
+                                str(document)
+                            )
+
+                            # ------------------------------------------------
+                            # 2. Remove physical file
+                            # ------------------------------------------------
+
                             document.unlink()
 
+                            # ------------------------------------------------
+                            # 3. Show result
+                            # ------------------------------------------------
+
                             st.success(
-                                f"{document.name} removed."
+                                f"{document.name} removed successfully."
+                            )
+
+                            st.info(
+                                f"Vector chunks removed: {removed_chunks}"
                             )
 
                             st.rerun()
 
-
                         except Exception as error:
 
                             st.error(
-                                "Could not remove "
-                                f"document: {error}"
+                                "Could not remove document:\n\n"
+                                f"{error}"
                             )
