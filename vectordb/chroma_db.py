@@ -1,10 +1,9 @@
+from pathlib import Path
 from typing import Any
 
 import chromadb
 
 from vectordb.base_db import BaseVectorStore
-
-
 class ChromaVectorStore(BaseVectorStore):
     """
     ChromaDB implementation of the vector store.
@@ -17,11 +16,11 @@ class ChromaVectorStore(BaseVectorStore):
     ):
         self.client = chromadb.PersistentClient(
             path=persist_directory
-        )
+            )
 
         self.collection = self.client.get_or_create_collection(
             name=collection_name
-        )
+            )
 
     # ============================================================
     # Add / update documents
@@ -84,9 +83,7 @@ class ChromaVectorStore(BaseVectorStore):
         if not ids:
             return
 
-        self.collection.delete(
-            ids=ids
-        )
+        self.collection.delete(ids=ids)
 
     # ============================================================
     # Get IDs by source
@@ -98,21 +95,42 @@ class ChromaVectorStore(BaseVectorStore):
     ) -> list[str]:
         """
         Return all chunk IDs belonging to a source document.
+
+        Source matching is based on the filename so that both:
+
+            IntelligentAgents_info.pdf
+
+        and:
+
+            C:/Python/AI Knowledge Assistant/data/uploads/IntelligentAgents_info.pdf
+
+        are treated as the same document.
         """
 
+        source_name = Path(source).name
+
         results = self.collection.get(
-            where={
-                "source": source
-            },
-            include=[
-                "metadatas"
-            ],
+            include=["metadatas"],
         )
 
-        return results.get(
-            "ids",
-            []
-        )
+        ids = results.get("ids", [])
+        metadatas = results.get("metadatas", [])
+
+        matching_ids = []
+
+        for chunk_id, metadata in zip(
+            ids,
+            metadatas,
+        ):
+            stored_source = metadata.get(
+                "source",
+                "",
+            )
+
+            if Path(stored_source).name == source_name:
+                matching_ids.append(chunk_id)
+
+        return matching_ids
 
     # ============================================================
     # List documents
