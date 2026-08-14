@@ -1,6 +1,6 @@
 from ingestion.service import DocumentIngestionService
 from retrieval.retriever import Retriever
-
+from pathlib import Path
 
 class BaseKnowledge:
 
@@ -54,12 +54,17 @@ class BaseKnowledge:
         """
         Remove all chunks belonging to a document.
 
+        The vector database stores only the original
+        filename as the source metadata.
+
         Returns the number of chunks removed.
         """
 
+        source = Path(file_path).name
+
         ids = self.retriever.vector_store.get_ids_by_source(
-            file_path
-            )
+            source
+        )
 
         if not ids:
             return 0
@@ -68,15 +73,17 @@ class BaseKnowledge:
 
         return len(ids)
 
+
     # checks the doc is exists or not
     def document_exists(self, file_path: str) -> bool:
         """
         Check whether a document already exists
         in the knowledge base.
         """
-
-        ids = self.retriever.vector_store.get_ids_by_source(
-            file_path
-        )
+        vector_store = getattr(self.retriever, "vector_store", None)
+        if vector_store is None:
+            return False
+        ids = vector_store.get_ids_by_source(
+        file_path)
 
         return bool(ids)
