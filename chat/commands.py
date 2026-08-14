@@ -65,7 +65,7 @@ class CommandHandler:
         except Exception as e:
             return f"Failed to ingest document: {e}"
 
-
+    # Ask command
     def ask_knowledge(self, command):
 
         question = command[len("/ask "):].strip()
@@ -91,6 +91,7 @@ class CommandHandler:
         /remove <file_path> -   Remove a document from the knowledge base
         """
 
+    # History command
     def show_history(self):
         messages = self.chatbot.get_messages()
         history=[]
@@ -107,7 +108,7 @@ class CommandHandler:
 
         return "\n".join(history)
 
-    
+    # Clear command
     def clear_history(self):
         self.chatbot.clear_history()
         return "Conversation history cleared."
