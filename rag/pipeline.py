@@ -7,13 +7,10 @@ from retrieval.retriever import Retriever
 
 class RAGPipeline:
     """
-    Coordinates retrieval, context construction,
-    language model generation, and source citations.
+    Strict Retrieval-Augmented Generation pipeline.
 
-    Supports hybrid behavior:
-    - Uses retrieved documents when relevant.
-    - Falls back to general LLM knowledge when
-      retrieved documents are not relevant.
+    The LLM is allowed to answer only from
+    retrieved document context.
     """
 
     def __init__(
@@ -21,12 +18,13 @@ class RAGPipeline:
         retriever: Retriever,
         context_builder: ContextBuilder,
         llm: BaseLLM,
-        relevance_threshold: float = 1.5
+        relevance_threshold: float = 1.0,
     ):
         self.retriever = retriever
         self.context_builder = context_builder
         self.llm = llm
         self.relevance_threshold = relevance_threshold
+
     def ask(
         self,
         question: str,
@@ -34,7 +32,7 @@ class RAGPipeline:
     ) -> str:
 
         # --------------------------------------------------
-        # 1. Retrieve relevant documents
+        # 1. Retrieve documents
         # --------------------------------------------------
 
         results = self.retriever.retrieve(
@@ -44,158 +42,182 @@ class RAGPipeline:
 
         documents = results.get(
             "documents",
-            [[]]
+            [[]],
         )[0]
 
         metadatas = results.get(
             "metadatas",
-            [[]]
+            [[]],
         )[0]
 
         distances = results.get(
             "distances",
-            [[]]
+            [[]],
         )[0]
 
-        #--------------------------------------------------
-        # 2. Determine whether retrieved documents
-        #    are actually relevant
+        # --------------------------------------------------
+        # 2. Relevance filtering
         # --------------------------------------------------
 
-        # ChromaDB distance:
-        # smaller distance = more similar
-        #
-        # This is an initial threshold and can be tuned
-        # later after evaluating more documents/questions.
+        print("\n--- Relevance Evaluation ---")
+        print(f"Threshold: {self.relevance_threshold}")
 
         relevant_documents = []
         relevant_metadatas = []
         relevant_distances = []
 
-        for document, metadata, distance in zip(
-            documents,
-            metadatas,
-            distances,
+        for index, (
+            document,
+            metadata,
+            distance,
+        ) in enumerate(
+            zip(
+                documents,
+                metadatas,
+                distances,
+            ),
+            start=1,
         ):
 
             if distance <= self.relevance_threshold:
 
+                print(
+                    f"{index}. distance={distance:.4f} → RELEVANT"
+                )
+
                 relevant_documents.append(document)
-
                 relevant_metadatas.append(metadata)
-
                 relevant_distances.append(distance)
 
+            else:
+
+                print(
+                    f"{index}. distance={distance:.4f} → NOT RELEVANT"
+                )
+
+        print(
+            f"Relevant results: "
+            f"{len(relevant_documents)}/{len(documents)}"
+        )
+
         # --------------------------------------------------
-        # 3. Document-related question
+        # 3. No relevant context
         # --------------------------------------------------
 
-        if relevant_documents:
+        if not relevant_documents:
 
-            context = self.context_builder.build(
-                relevant_documents
+            print(
+                "Decision: NO RELEVANT DOCUMENT CONTEXT"
+            )
+            print("-------------------------------\n")
+
+            return (
+                "I couldn't find information about this "
+                "in the provided documents."
             )
 
-            messages = [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are an AI Knowledge Assistant. "
+        # --------------------------------------------------
+        # 4. Build context
+        # --------------------------------------------------
 
-                        "Use the provided document context "
-                        "whenever it contains information "
-                        "relevant to the user's question. "
+        print(
+            "Decision: DOCUMENT CONTEXT USED"
+        )
+        print("-------------------------------\n")
 
-                        "If the context does not contain enough "
-                        "information to answer the question, "
-                        "you may use your general knowledge. "
-
-                        "Clearly distinguish information from "
-                        "the documents from information based "
-                        "on general knowledge. "
-
-                        "Do not invent information and do not "
-                        "claim that something comes from the "
-                        "documents unless it is supported by "
-                        "the provided context."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": (
-                        f"Document Context:\n"
-                        f"{context}\n\n"
-                        f"Question:\n"
-                        f"{question}"
-                    ),
-                },
-            ]
-
-            answer = self.llm.generate(messages)
-
-            # --------------------------------------------------
-            # 4. Build source citations
-            # --------------------------------------------------
-
-            source_scores = {}
-
-            for metadata, distance in zip(
-                relevant_metadatas,
-                relevant_distances,
-            ):
-
-                source = metadata.get("source")
-
-                if not source:
-                    continue
-
-                filename = Path(source).name
-
-                if (
-                    filename not in source_scores
-                    or distance < source_scores[filename]
-                ):
-                    source_scores[filename] = distance
-
-            sorted_sources = sorted(
-                source_scores.items(),
-                key=lambda item: item[1],
-            )
-
-            if sorted_sources:
-
-                answer += "\n\nSources:\n"
-
-                for index, (source, distance) in enumerate(
-                    sorted_sources,
-                    start=1,
-                ):
-                    answer += f"\n[{index}] {source}\n"
-
-            return answer
+        context = self.context_builder.build(
+            relevant_documents
+        )
 
         # --------------------------------------------------
-        # 5. General knowledge fallback
+        # 5. Strict RAG prompt
         # --------------------------------------------------
 
         messages = [
             {
                 "role": "system",
                 "content": (
-                    "You are an AI Knowledge Assistant. "
+                    "You are an AI Knowledge Assistant "
+                    "that answers questions using only "
+                    "the provided document context.\n\n"
 
-                    "No relevant document context was found "
-                    "for this question. "
-
-                    "Answer the user's question and "
-                    "Do not claim that the answer comes from "
-                    "the user's documents."
+                    "STRICT RULES:\n"
+                    "1. Use only information contained "
+                    "in the provided context.\n"
+                    "2. Do not use your general knowledge.\n"
+                    "3. Do not guess or invent information.\n"
+                    "4. If the context does not contain "
+                    "enough information to answer the "
+                    "question, say that the information "
+                    "is not available in the provided "
+                    "documents.\n"
+                    "5. Do not claim information comes "
+                    "from the documents unless it is "
+                    "supported by the context."
                 ),
             },
             {
                 "role": "user",
-                "content": question,
+                "content": (
+                    f"Document Context:\n"
+                    f"{context}\n\n"
+                    f"Question:\n"
+                    f"{question}"
+                ),
             },
         ]
 
-        return self.llm.generate(messages)
+        # --------------------------------------------------
+        # 6. Generate answer
+        # --------------------------------------------------
+
+        answer = self.llm.generate(
+            messages
+        )
+
+        # --------------------------------------------------
+        # 7. Build source citations
+        # --------------------------------------------------
+
+        source_scores = {}
+
+        for metadata, distance in zip(
+            relevant_metadatas,
+            relevant_distances,
+        ):
+
+            source = metadata.get("source")
+
+            if not source:
+                continue
+
+            filename = Path(source).name
+
+            if (
+                filename not in source_scores
+                or distance < source_scores[filename]
+            ):
+                source_scores[filename] = distance
+
+        sorted_sources = sorted(
+            source_scores.items(),
+            key=lambda item: item[1],
+        )
+
+        if sorted_sources:
+
+            answer += "\n\nSources:\n"
+
+            for index, (
+                source,
+                distance,
+            ) in enumerate(
+                sorted_sources,
+                start=1,
+            ):
+
+                answer += (
+                    f"\n[{index}] {source}\n"
+                )
+
+        return answer
