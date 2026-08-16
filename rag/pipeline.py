@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from config import RAG_RELEVANCE_THRESHOLD
+
 from llms.base_llm import BaseLLM
 from retrieval.context_builder import ContextBuilder
 from retrieval.retriever import Retriever
@@ -18,7 +20,7 @@ class RAGPipeline:
         retriever: Retriever,
         context_builder: ContextBuilder,
         llm: BaseLLM,
-        relevance_threshold: float = 1.0,
+        relevance_threshold: float = RAG_RELEVANCE_THRESHOLD,
     ):
         self.retriever = retriever
         self.context_builder = context_builder
@@ -186,12 +188,15 @@ class RAGPipeline:
             relevant_distances,
         ):
 
-            source = metadata.get("source")
+            filename = metadata.get("filename")
 
-            if not source:
-                continue
+            if not filename:
+                source = metadata.get("source")
 
-            filename = Path(source).name
+                if not source:
+                    continue
+
+                filename = Path(source).name
 
             if (
                 filename not in source_scores
