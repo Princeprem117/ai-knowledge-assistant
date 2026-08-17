@@ -1,4 +1,7 @@
-from config import CHROMA_PERSIST_DIRECTORY
+from config import (
+    CHROMA_PERSIST_DIRECTORY,
+    RAG_RELEVANCE_THRESHOLD,
+ )
 
 from chunkers.recursive_chunker import RecursiveChunker
 from embeddings.sentence_transformer import SentenceTransformerEmbedding
@@ -6,19 +9,20 @@ from embeddings.sentence_transformer import SentenceTransformerEmbedding
 from ingestion.pipeline import IngestionPipeline
 from ingestion.service import DocumentIngestionService
 
-from knowledge.base_knowledge import BaseKnowledge
-
 from llms.groq_client import GroqClient
 
 from retrieval.retriever import Retriever
 from retrieval.context_builder import ContextBuilder
 
 from rag.pipeline import RAGPipeline
+from rag.service import RAGService
+
+from services.document_service import DocumentService
 
 from vectordb.chroma_db import ChromaVectorStore
 
 
-def create_knowledge_base():
+def create_knowledge_base()-> RAGService:
     """
     Create and configure the knowledge base and
     all of its required dependencies.
@@ -33,6 +37,11 @@ def create_knowledge_base():
     # Vector store
     vector_store = ChromaVectorStore(
         persist_directory=CHROMA_PERSIST_DIRECTORY
+    )
+
+    # Document service
+    document_service = DocumentService(
+        vector_store=vector_store,
     )
 
     # Chunker
@@ -67,13 +76,14 @@ def create_knowledge_base():
         retriever=retriever,
         context_builder= context_builder,
         llm=llm,
-        relevance_threshold=1.5,
+        relevance_threshold=RAG_RELEVANCE_THRESHOLD,
 )
 
-    # Knowledge base
-    knowledge = BaseKnowledge(
+
+    # Application-level RAG service
+    rag_service = RAGService(
+        rag_pipeline=rag_pipeline,
         ingestion_service=ingestion_service,
-        retriever=retriever,
     )
 
-    return knowledge, rag_pipeline, llm
+    return rag_service, document_service
