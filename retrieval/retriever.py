@@ -19,38 +19,91 @@ class Retriever:
     def retrieve(
         self,
         query: str,
-        top_k: int = 5,
-    ) -> dict:
+        top_k: int = 3,
+        max_distance: float | None = None,
+        user_id: str | None = None,
+    ):
         """
-        Convert the query into an embedding and
-        retrieve the most relevant documents.
+        Retrieve relevant document chunks.
+
+        Args:
+            query: User's search query.
+            top_k: Maximum number of chunks to retrieve.
+            max_distance: Optional maximum allowed distance.
         """
+
+        print("\n--- Retrieval Debug ---")
+        print(f"Query: {query}")
+        print(f"Top-K: {top_k}")
+        print(f"user_id: {user_id}")
 
         query_embedding = self.embedding_model.embed(query)
 
         results = self.vector_store.search(
             query_embedding=query_embedding,
             top_k=top_k,
+            user_id=user_id,
         )
 
-        # Temporary diagnostic output
-        print("\n--- Retrieval Debug ---")
-        print(f"Query: {query}")
-
+        ids = results.get("ids", [[]])[0]
         distances = results.get("distances", [[]])[0]
         documents = results.get("documents", [[]])[0]
+        metadatas = results.get("metadatas", [[]])[0]
 
-        for index, (distance, document) in enumerate(
-            zip(distances, documents),
+        filtered_ids = []
+        filtered_distances = []
+        filtered_documents = []
+        filtered_metadatas = []
+
+        for index, (
+            result_id,
+            distance,
+            document,
+            metadata,
+        ) in enumerate(
+            zip(
+                ids,
+                distances,
+                documents,
+                metadatas,
+            ),
             start=1,
         ):
-            preview = document[:100].replace("\n", " ")
+
+            source = metadata.get(
+                "source",
+                "unknown",
+            )
+
+            preview = document[:100].replace(
+                "\n",
+                " ",
+            )
 
             print(
                 f"{index}. distance={distance:.4f} "
-                f"| document={preview}"
+                f"|source=\n{source}"
             )
+
+            print(
+                f" Document = {preview}"
+            )
+
+            if (
+                max_distance is None
+                or distance <= max_distance
+            ):
+                filtered_ids.append(result_id)
+                filtered_distances.append(distance)
+                filtered_documents.append(document)
+                filtered_metadatas.append(metadata)
 
         print("-----------------------\n")
 
-        return results
+        return {
+            **results,
+            "ids": [filtered_ids],
+            "distances": [filtered_distances],
+            "documents": [filtered_documents],
+            "metadatas": [filtered_metadatas],
+        }
