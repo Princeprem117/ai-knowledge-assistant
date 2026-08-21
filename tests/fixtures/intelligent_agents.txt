@@ -1,0 +1,19 @@
+Intelligent Agents
+
+An intelligent agent is a system that perceives its environment through sensors and acts upon that environment through actuators. An agent chooses actions based on the information it receives from its environment.
+
+A rational agent is an agent that selects the action expected to maximize its performance measure, given the information available to it. Rationality depends on the percept sequence, the agent's prior knowledge, the available actions, and the performance measure.
+
+A simple reflex agent selects actions based only on the current percept. It uses condition-action rules to respond directly to what it currently perceives. A simple reflex agent does not maintain an internal representation of previous percepts.
+
+A model-based reflex agent maintains an internal state that represents aspects of the world that are not directly observable from the current percept. The internal model allows the agent to keep track of how the world changes and how its actions affect the world.
+
+A goal-based agent chooses actions according to goals that describe desirable states of the environment. It considers possible actions and determines which actions can help achieve its goals.
+
+A utility-based agent evaluates possible outcomes using a utility function. The utility function measures how desirable different states or outcomes are. A utility-based agent selects actions that are expected to maximize utility.
+
+The four basic types of agents commonly discussed are simple reflex agents, model-based reflex agents, goal-based agents, and utility-based agents.
+
+Simple reflex agents are appropriate when the current percept provides enough information to determine an action. Model-based reflex agents maintain internal state to handle partially observable environments. Goal-based agents use explicit goals to guide action selection. Utility-based agents go further by comparing the desirability of possible outcomes.
+
+Agent design involves the interaction between perception, decision making, and action. Sensors provide percepts from the environment, while actuators allow the agent to perform actions.
