@@ -1,6 +1,9 @@
 from config import (
     CHROMA_PERSIST_DIRECTORY,
     RAG_RELEVANCE_THRESHOLD,
+    TOP_K,
+    CHUNK_SIZE,
+    CHUNK_OVERLAP,
  )
 
 from chunkers.recursive_chunker import RecursiveChunker
@@ -21,6 +24,10 @@ from services.document_service import DocumentService
 
 from vectordb.chroma_db import ChromaVectorStore
 
+from repositories.document_repository import DocumentRepository
+from services.document_lifecycle_service import (
+    DocumentLifecycleService,
+)
 
 def create_knowledge_base()-> RAGService:
     """
@@ -39,15 +46,10 @@ def create_knowledge_base()-> RAGService:
         persist_directory=CHROMA_PERSIST_DIRECTORY
     )
 
-    # Document service
-    document_service = DocumentService(
-        vector_store=vector_store,
-    )
-
     # Chunker
     chunker = RecursiveChunker(
-        chunk_size=100,
-        chunk_overlap=20,
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=CHUNK_OVERLAP,
     )
 
     # Ingestion pipeline
@@ -60,6 +62,16 @@ def create_knowledge_base()-> RAGService:
     # Document ingestion service
     ingestion_service = DocumentIngestionService(
         ingestion_pipeline=ingestion_pipeline,
+    )
+
+    # PostgreSQL Document repository
+    repository = DocumentRepository()
+
+    # Document service
+    document_service = DocumentService(
+        vector_store=vector_store,
+        ingestion_service=ingestion_service,
+        repository=repository,
     )
 
     # Retriever
@@ -86,4 +98,16 @@ def create_knowledge_base()-> RAGService:
         ingestion_service=ingestion_service,
     )
 
-    return rag_service, document_service
+
+    document_lifecycle_service = (
+        DocumentLifecycleService(
+            repository=repository,
+            rag_service=rag_service,
+        )
+    )
+
+    return (
+        rag_service,
+        document_service,
+        document_lifecycle_service,
+)
