@@ -1,17 +1,19 @@
+import pytest
+from pathlib import Path
 from unittest.mock import MagicMock
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-from rag.pipeline import RAGPipeline
-from rag.service import RAGService
-from ingestion.service import DocumentIngestionService
 
 from database.models import Base, DocumentRecord
 
 from services.document_lifecycle_service import (
     DocumentLifecycleService,
 )
+
+from rag.service import RAGService
+from rag.pipeline import RAGPipeline
+from ingestion.service import DocumentIngestionService
 
 
 class FakeRAGService(RAGService):
@@ -37,7 +39,7 @@ class FakeDocumentRepository:
     def __init__(self, session_factory):
         self.session_factory = session_factory
 
-    def create(self, **kwargs):
+    async def create(self, **kwargs):
 
         with self.session_factory() as session:
 
@@ -51,7 +53,7 @@ class FakeDocumentRepository:
 
             return document
 
-    def find_by_user_and_hash(
+    async def find_by_user_and_hash(
         self,
         user_id: str,
         content_hash: str,
@@ -68,7 +70,7 @@ class FakeDocumentRepository:
                 .first()
             )
 
-    def update_status(
+    async def update_status(
         self,
         document_id: str,
         status: str,
@@ -85,11 +87,18 @@ class FakeDocumentRepository:
             )
 
             if document:
+
                 document.processing_status = status
+
                 session.commit()
 
 
-def test_duplicate_detection(tmp_path):
+@pytest.mark.asyncio
+async def test_duplicate_detection(tmp_path):
+
+    # --------------------------------------------------
+    # 1. Create test file
+    # --------------------------------------------------
 
     file = tmp_path / "sample.txt"
 
@@ -98,17 +107,21 @@ def test_duplicate_detection(tmp_path):
         encoding="utf-8",
     )
 
-    # ---------------------------------------------
-    # Isolated test database
-    # ---------------------------------------------
+    # --------------------------------------------------
+    # 2. Create isolated test database
+    # --------------------------------------------------
 
-    test_database = tmp_path / "test_documents.db"
+    test_database = (
+        tmp_path / "test_documents.db"
+    )
 
     test_engine = create_engine(
         f"sqlite:///{test_database}",
     )
 
-    Base.metadata.create_all(test_engine)
+    Base.metadata.create_all(
+        test_engine
+    )
 
     TestSessionLocal = sessionmaker(
         bind=test_engine,
@@ -116,41 +129,49 @@ def test_duplicate_detection(tmp_path):
         autocommit=False,
     )
 
-    # ---------------------------------------------
-    # Test repository
-    # ---------------------------------------------
+    # --------------------------------------------------
+    # 3. Create repository
+    # --------------------------------------------------
 
     repo = FakeDocumentRepository(
         session_factory=TestSessionLocal
     )
+
+    # --------------------------------------------------
+    # 4. Create lifecycle service
+    # --------------------------------------------------
 
     lifecycle = DocumentLifecycleService(
         repository=repo,
         rag_service=FakeRAGService(),
     )
 
-    # ---------------------------------------------
-    # First upload
-    # ---------------------------------------------
+    # --------------------------------------------------
+    # 5. First upload
+    # --------------------------------------------------
 
-    first = lifecycle.upload_document(
+    first = await lifecycle.upload_document(
         file_path=str(file),
         user_id="user1",
     )
 
-    # ---------------------------------------------
-    # Second upload
-    # ---------------------------------------------
+    # --------------------------------------------------
+    # 6. Second upload
+    # --------------------------------------------------
 
-    second = lifecycle.upload_document(
+    second = await lifecycle.upload_document(
         file_path=str(file),
         user_id="user1",
     )
 
-    # ---------------------------------------------
-    # Assertions
-    # ---------------------------------------------
+    # --------------------------------------------------
+    # 7. Validate duplicate detection
+    # --------------------------------------------------
 
     assert first["duplicate"] is False
 
     assert second["duplicate"] is True
+
+    assert first["chunks"] == 3
+
+    assert second["chunks"] == 0

@@ -1,7 +1,18 @@
+import pytest
+
 from config import CHROMA_PERSIST_DIRECTORY
 
-from services.document_service import DocumentService
-from vectordb.chroma_db import ChromaVectorStore
+from services.document_service import (
+    DocumentService,
+)
+
+from vectordb.chroma_db import (
+    ChromaVectorStore,
+)
+
+from repositories.document_repository import (
+    DocumentRepository,
+)
 
 
 def create_service():
@@ -10,55 +21,84 @@ def create_service():
         persist_directory=CHROMA_PERSIST_DIRECTORY
     )
 
+    repository = DocumentRepository()
+
     return DocumentService(
-        vector_store=vector_store
+        vector_store=vector_store,
+        repository=repository,
     )
 
 
-def test_document_service():
+@pytest.mark.asyncio
+async def test_document_service():
 
     service = create_service()
 
-    documents = service.list_documents()
+    documents = service.list_documents(
+        user_id="prince"
+    )
 
     print("\n--- Documents ---")
 
     for document in documents:
         print(document)
 
-    assert isinstance(documents, list)
+    assert isinstance(
+        documents,
+        list,
+    )
 
 
-def test_delete_document():
+@pytest.mark.asyncio
+async def test_delete_document():
 
     service = create_service()
 
-    documents_before = service.list_documents()
+    user_id = "prince"
 
-    print("\n--- Documents Before Delete ---")
+    documents_before = service.list_documents(
+        user_id=user_id
+    )
+
+    print(
+        "\n--- Documents Before Delete ---"
+    )
 
     for document in documents_before:
         print(document)
 
     if not documents_before:
-        print("\nNo documents available to delete.")
+
+        print(
+            "\nNo documents available to delete."
+        )
+
         return
 
-    filename = documents_before[0]["filename"]
+    filename = documents_before[0][
+        "filename"
+    ]
 
-    print(f"\nDeleting: {filename}")
+    print(
+        f"\nDeleting: {filename}"
+    )
 
-    deleted_chunks = service.delete_document(
-        filename
+    deleted_chunks = await service.delete_document(
+        filename=filename,
+        user_id=user_id,
     )
 
     print(
         f"Deleted chunks: {deleted_chunks}"
     )
 
-    documents_after = service.list_documents()
+    documents_after = service.list_documents(
+        user_id=user_id
+    )
 
-    print("\n--- Documents After Delete ---")
+    print(
+        "\n--- Documents After Delete ---"
+    )
 
     for document in documents_after:
         print(document)

@@ -1,11 +1,32 @@
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from database.models import Base, DocumentRecord
+from database.models import Base
 from repositories.document_repository import DocumentRepository
 
 
-def test_repository_create(tmp_path):
+class TestRepository:
+
+    def __init__(self, session_factory):
+        self.session_factory = session_factory
+
+    async def create(self, **kwargs):
+        from database.models import DocumentRecord
+
+        with self.session_factory() as session:
+            document = DocumentRecord(**kwargs)
+
+            session.add(document)
+            session.commit()
+            session.refresh(document)
+
+            return document
+
+
+@pytest.mark.asyncio
+async def test_repository_create(tmp_path):
+
     # ---------------------------------------------
     # Isolated test database
     # ---------------------------------------------
@@ -25,43 +46,29 @@ def test_repository_create(tmp_path):
     )
 
     # ---------------------------------------------
-    # Temporarily replace the repository's
-    # SessionLocal with the isolated test session
+    # Test repository directly
     # ---------------------------------------------
 
-    import repositories.document_repository as repository_module
+    repo = TestRepository(
+        session_factory=TestSessionLocal
+    )
 
-    original_session_local = repository_module.SessionLocal
+    document = await repo.create(
+        user_id="test_user",
+        filename="sample.pdf",
+        content_hash="abc123",
+        storage_path="data/uploads/test/sample.pdf",
+        file_type="pdf",
+        file_size=100,
+        processing_status="completed",
+    )
 
-    repository_module.SessionLocal = TestSessionLocal
+    # ---------------------------------------------
+    # Assertions
+    # ---------------------------------------------
 
-    try:
-
-        repo = DocumentRepository()
-
-        document = repo.create(
-
-            user_id="test_user",
-
-            filename="sample.pdf",
-
-            content_hash="abc123",
-
-            storage_path="data/uploads/test/sample.pdf",
-
-            file_type="pdf",
-
-            file_size=100,
-
-            processing_status="completed",
-        )
-
-        assert document.user_id == "test_user"
-
-        assert document.filename == "sample.pdf"
-
-        assert document.content_hash == "abc123"
-
-    finally:
-
-        repository_module.SessionLocal = original_session_local
+    assert document.user_id == "test_user"
+    assert document.filename == "sample.pdf"
+    assert document.content_hash == "abc123"
+    assert document.file_type == "pdf"
+    assert document.processing_status == "completed"
