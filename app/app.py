@@ -12,7 +12,7 @@ history = load_history()
 
 
 # Initialize shared application dependencies
-knowledge, rag_pipeline, llm = create_knowledge_base()
+rag_service, document_service = create_knowledge_base()
 
 print("Knowledge Base initialized successfully.")
 
@@ -20,15 +20,15 @@ print("Knowledge Base initialized successfully.")
 # Chatbot
 chatbot = ChatBot(
     conversation_history=history,
-    llm=llm,
-    rag_pipeline=rag_pipeline,
+    llm=rag_service.rag_pipeline.llm,
+    rag_pipeline=rag_service.rag_pipeline,
 )
 
 
 # Command handler
 command_handler = CommandHandler(
     chatbot=chatbot,
-    knowledge=knowledge,
+    knowledge=document_service,
 )
 
 
